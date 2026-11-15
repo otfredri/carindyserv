@@ -6,9 +6,19 @@ const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 
 const app = express();
+
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000' }));
+app.use(cors({
+  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 204
+}));
 app.use(express.json({ limit: '50kb' }));
+
+// Health check – useful for Railway
+app.get('/', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api', rateLimit({ windowMs: 60_000, max: 60 }));
 app.use('/api/quotes', require('./routes/quotes'));
 app.use((err, req, res, next) => {
